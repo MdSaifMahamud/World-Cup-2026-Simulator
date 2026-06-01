@@ -3,14 +3,13 @@ import { Badge } from "@/components/ui/badge";
 import type { GroupId, StandingRow } from "@/lib/types";
 import { teamsMap } from "@/data/teams";
 import { useTournamentStore } from "@/store/tournamentStore";
+import FlagImage from "./FlagImage";
 
-interface Props {
-  groupId: GroupId;
-}
+interface Props { groupId: GroupId }
 
 const STATUS_COLORS: Record<string, string> = {
-  QUALIFIED: "bg-green-500/20 border-l-4 border-green-500",
-  POSSIBLE: "bg-yellow-500/10 border-l-4 border-yellow-400",
+  QUALIFIED:  "bg-green-500/20 border-l-4 border-green-500",
+  POSSIBLE:   "bg-yellow-500/10 border-l-4 border-yellow-400",
   ELIMINATED: "bg-red-500/10 border-l-4 border-red-400",
 };
 
@@ -44,8 +43,15 @@ export default function GroupTable({ groupId }: Props) {
               >
                 <td className="py-2 px-3 text-muted-foreground text-xs">{row.rank}</td>
                 <td className="py-2 px-3 font-medium">
-                  <span className="flex items-center gap-1.5">
-                    <span className="text-base">{team?.flagEmoji}</span>
+                  <span className="flex items-center gap-2">
+                    {team && (
+                      <FlagImage
+                        isoCode={team.isoCode}
+                        name={team.name}
+                        size="sm"
+                        fallbackEmoji={team.flagEmoji}
+                      />
+                    )}
                     <span className="hidden sm:inline">{team?.name}</span>
                     <span className="sm:hidden">{team?.shortName}</span>
                   </span>

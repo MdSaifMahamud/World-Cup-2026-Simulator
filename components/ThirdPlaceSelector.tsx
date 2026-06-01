@@ -4,18 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTournamentStore } from "@/store/tournamentStore";
 import { teamsMap } from "@/data/teams";
+import FlagImage from "./FlagImage";
 
 export default function ThirdPlaceSelector() {
-  const bestThird = useTournamentStore((s) => s.bestThird);
-  const storeSelectedIds = useTournamentStore((s) => s.selectedThirdPlaceTeamIds);
-  const thirdPlaceConfirmed = useTournamentStore((s) => s.thirdPlaceConfirmed);
-  const setSelectedThirdPlaceTeamIds = useTournamentStore((s) => s.setSelectedThirdPlaceTeamIds);
-  const confirmThirdPlaceAndGenerateKnockout = useTournamentStore(
-    (s) => s.confirmThirdPlaceAndGenerateKnockout
-  );
+  const bestThird                         = useTournamentStore((s) => s.bestThird);
+  const storeSelectedIds                  = useTournamentStore((s) => s.selectedThirdPlaceTeamIds);
+  const thirdPlaceConfirmed               = useTournamentStore((s) => s.thirdPlaceConfirmed);
+  const setSelectedThirdPlaceTeamIds      = useTournamentStore((s) => s.setSelectedThirdPlaceTeamIds);
+  const confirmThirdPlaceAndGenerateKnockout = useTournamentStore((s) => s.confirmThirdPlaceAndGenerateKnockout);
 
-  // Initialise from store (store is pre-populated with top-8 by setGroupOrder).
-  // Fall back to top-8 if store is still empty (edge case).
   const initialIds =
     storeSelectedIds.length > 0
       ? storeSelectedIds
@@ -29,22 +26,20 @@ export default function ThirdPlaceSelector() {
     if (next.has(teamId)) {
       next.delete(teamId);
     } else {
-      if (next.size >= 8) return; // enforce maximum 8
+      if (next.size >= 8) return;
       next.add(teamId);
     }
     setSelected(next);
-    setSelectedThirdPlaceTeamIds([...next]); // keep store in sync
+    setSelectedThirdPlaceTeamIds([...next]);
   }
 
   function handleConfirm() {
     if (selected.size !== 8) return;
-    // Sync to store first (Zustand set is synchronous, so get() in
-    // confirmThirdPlaceAndGenerateKnockout will see the updated ids)
     setSelectedThirdPlaceTeamIds([...selected]);
     confirmThirdPlaceAndGenerateKnockout();
   }
 
-  const count = selected.size;
+  const count     = selected.size;
   const remaining = 8 - count;
 
   if (bestThird.length === 0) {
@@ -79,10 +74,10 @@ export default function ThirdPlaceSelector() {
       {/* Team list */}
       <div className="space-y-2">
         {bestThird.map((row, idx) => {
-          const team = teamsMap[row.teamId];
+          const team       = teamsMap[row.teamId];
           const isSelected = selected.has(row.teamId);
-          const isBlocked = !isSelected && count >= 8 && !thirdPlaceConfirmed;
-          const isCutoff = idx === 7; // separator line after 8th
+          const isBlocked  = !isSelected && count >= 8 && !thirdPlaceConfirmed;
+          const isCutoff   = idx === 7;
 
           return (
             <div key={row.teamId}>
@@ -97,17 +92,14 @@ export default function ThirdPlaceSelector() {
                   ${isBlocked ? "opacity-35 cursor-not-allowed" : thirdPlaceConfirmed ? "cursor-default" : "cursor-pointer hover:shadow-sm"}
                 `}
               >
-                {/* Position number */}
                 <span className="w-7 shrink-0 text-center font-mono text-sm font-bold text-muted-foreground">
                   {idx + 1}
                 </span>
 
                 {/* Checkbox */}
-                <div
-                  className={`w-5 h-5 rounded border-2 shrink-0 flex items-center justify-center transition-colors ${
-                    isSelected ? "border-green-500 bg-green-500" : "border-muted-foreground/40"
-                  }`}
-                >
+                <div className={`w-5 h-5 rounded border-2 shrink-0 flex items-center justify-center transition-colors ${
+                  isSelected ? "border-green-500 bg-green-500" : "border-muted-foreground/40"
+                }`}>
                   {isSelected && (
                     <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -116,15 +108,21 @@ export default function ThirdPlaceSelector() {
                 </div>
 
                 {/* Flag + Name */}
-                <span className="text-2xl leading-none shrink-0">{team?.flagEmoji}</span>
+                {team && (
+                  <FlagImage
+                    isoCode={team.isoCode}
+                    name={team.name}
+                    size="md"
+                    fallbackEmoji={team.flagEmoji}
+                    className="shrink-0"
+                  />
+                )}
                 <span className="flex-1 font-semibold text-sm">{team?.name}</span>
 
-                {/* Group badge */}
                 <Badge variant="outline" className="text-[11px] px-2 shrink-0">
                   Group {row.group}
                 </Badge>
 
-                {/* Status label */}
                 {!thirdPlaceConfirmed && (
                   <span className={`text-[11px] font-semibold shrink-0 hidden sm:block ${isSelected ? "text-green-600" : "text-muted-foreground"}`}>
                     {isSelected ? "✓ Advances" : "Eliminated"}
@@ -132,12 +130,12 @@ export default function ThirdPlaceSelector() {
                 )}
               </button>
 
-              {/* Divider between qualified and eliminated */}
+              {/* Cut-off line after 8th */}
               {isCutoff && (
                 <div className="flex items-center gap-2 my-2 px-1">
                   <div className="flex-1 h-px bg-border" />
                   <span className="text-[11px] text-muted-foreground font-medium shrink-0">
-                    ─ Cut-off line · 4 teams below are eliminated ─
+                    ─ Cut-off · 4 teams below eliminated ─
                   </span>
                   <div className="flex-1 h-px bg-border" />
                 </div>
@@ -147,30 +145,17 @@ export default function ThirdPlaceSelector() {
         })}
       </div>
 
-      {/* Confirm / locked state */}
       {!thirdPlaceConfirmed ? (
         <div className="pt-2 space-y-2">
-          <Button
-            size="lg"
-            className="w-full sm:w-auto"
-            disabled={count !== 8}
-            onClick={handleConfirm}
-          >
+          <Button size="lg" className="w-full sm:w-auto" disabled={count !== 8} onClick={handleConfirm}>
             {count === 8
-              ? "✅ Confirm & Generate Round of 32 →"
+              ? "✅ Confirm Selection & Generate Round of 32 →"
               : `Select ${remaining} more team${remaining !== 1 ? "s" : ""} to continue`}
           </Button>
-          {count !== 8 && (
-            <p className="text-xs text-muted-foreground">
-              {remaining > 0
-                ? `Choose ${remaining} more team${remaining !== 1 ? "s" : ""}.`
-                : `Deselect ${Math.abs(remaining)} team${Math.abs(remaining) !== 1 ? "s" : ""}.`}
-            </p>
-          )}
         </div>
       ) : (
         <div className="border border-green-500/40 bg-green-50 dark:bg-green-950/20 rounded-xl p-4 text-sm text-green-700 dark:text-green-400 font-medium">
-          ✅ 8 teams confirmed and Round of 32 bracket generated.
+          ✅ 8 teams confirmed — Round of 32 bracket generated.
           Head to the <strong>Bracket</strong> page to play the knockout stage.
         </div>
       )}

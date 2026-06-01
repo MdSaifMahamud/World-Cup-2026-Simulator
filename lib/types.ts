@@ -21,7 +21,8 @@ export interface Team {
   name: string;
   shortName: string;
   group: GroupId;
-  flagEmoji?: string;
+  isoCode: string;     // ISO 3166-1 alpha-2 (e.g. "fr") or subdivision (e.g. "gb-eng")
+  flagEmoji?: string;  // kept as fallback for text contexts
   rating: number;
 }
 

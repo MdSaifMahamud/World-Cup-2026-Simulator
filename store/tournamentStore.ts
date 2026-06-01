@@ -5,7 +5,7 @@ import { teams } from "@/data/teams";
 import { groupsMap } from "@/data/groups";
 import { calculateAllStandings } from "@/lib/standings";
 import { getBestThirdPlacedTeams } from "@/lib/thirdPlace";
-import { generateRoundOf32, advanceKnockoutWinner } from "@/lib/knockout";
+import { generateRoundOf32, advanceKnockoutWinner, clearKnockoutMatch } from "@/lib/knockout";
 import { saveToStorage, loadFromStorage, clearStorage } from "@/lib/storage";
 import { exportAsJSON, exportGroupsAsCSV, parseImportedJSON } from "@/lib/export";
 import type {
@@ -58,6 +58,7 @@ interface TournamentState {
 
   // Knockout
   setKnockoutWinner: (matchId: string, winnerTeamId: string) => void;
+  resetKnockoutMatch: (matchId: string) => void;
   simulateKnockoutMatch: (matchId: string) => void;
   simulateFullTournament: () => void;
 
@@ -224,6 +225,14 @@ export const useTournamentStore = create<TournamentState>((set, get) => ({
         : m
     );
     updated = advanceKnockoutWinner(matchId, winnerTeamId, loserTeamId, updated);
+    const results = findChampion(updated);
+    const derived = recomputeDerived(updated, manualGroupOrders, thirdPlaceConfirmed);
+    set({ fixtures: updated, ...derived, ...results });
+  },
+
+  resetKnockoutMatch(matchId) {
+    const { fixtures, manualGroupOrders, thirdPlaceConfirmed } = get();
+    const updated = clearKnockoutMatch(matchId, fixtures);
     const results = findChampion(updated);
     const derived = recomputeDerived(updated, manualGroupOrders, thirdPlaceConfirmed);
     set({ fixtures: updated, ...derived, ...results });

@@ -159,6 +159,65 @@ const LOSER_MATCH: Record<string, { matchId: string; slot: "home" | "away" }> = 
   M102: { matchId: "M103", slot: "away" },
 };
 
+// Reset a completed knockout match and cascade-clear all downstream results.
+// Uses BFS so clearing M73 (R32) also clears M90→M97→M101→M104 if they were played.
+export function clearKnockoutMatch(startMatchId: string, allMatches: Match[]): Match[] {
+  const updated = allMatches.map((m) => ({ ...m }));
+  const queue = [startMatchId];
+
+  while (queue.length > 0) {
+    const matchId = queue.shift()!;
+    const match = updated.find((m) => m.id === matchId);
+    if (!match) continue;
+
+    const prevWinnerId = match.winnerTeamId;
+    const prevLoserId  = match.loserTeamId;
+
+    // Reset this match
+    match.status      = "NOT_STARTED";
+    match.winnerTeamId = null;
+    match.loserTeamId  = null;
+    match.decidedBy    = null;
+
+    // Clear winner from the next match slot
+    const next = NEXT_MATCH[matchId];
+    if (next && prevWinnerId) {
+      const nextMatch = updated.find((m) => m.id === next.matchId);
+      if (nextMatch) {
+        const slotHeld =
+          next.slot === "home"
+            ? nextMatch.homeTeamId === prevWinnerId
+            : nextMatch.awayTeamId === prevWinnerId;
+        if (slotHeld) {
+          if (next.slot === "home") nextMatch.homeTeamId = undefined;
+          else nextMatch.awayTeamId = undefined;
+          // Cascade if that match was already played
+          if (nextMatch.status === "COMPLETED") queue.push(nextMatch.id);
+        }
+      }
+    }
+
+    // Clear loser from the 3rd-place match slot (SF only)
+    const loserNext = LOSER_MATCH[matchId];
+    if (loserNext && prevLoserId) {
+      const loserMatch = updated.find((m) => m.id === loserNext.matchId);
+      if (loserMatch) {
+        const slotHeld =
+          loserNext.slot === "home"
+            ? loserMatch.homeTeamId === prevLoserId
+            : loserMatch.awayTeamId === prevLoserId;
+        if (slotHeld) {
+          if (loserNext.slot === "home") loserMatch.homeTeamId = undefined;
+          else loserMatch.awayTeamId = undefined;
+          if (loserMatch.status === "COMPLETED") queue.push(loserMatch.id);
+        }
+      }
+    }
+  }
+
+  return updated;
+}
+
 export function advanceKnockoutWinner(
   matchId: string,
   winnerTeamId: string,

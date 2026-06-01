@@ -2,6 +2,7 @@
 import { Badge } from "@/components/ui/badge";
 import { useTournamentStore } from "@/store/tournamentStore";
 import { teamsMap } from "@/data/teams";
+import FlagImage from "./FlagImage";
 
 export default function ThirdPlaceTable() {
   const bestThird = useTournamentStore((s) => s.bestThird);
@@ -45,8 +46,15 @@ export default function ThirdPlaceTable() {
               >
                 <td className="py-2 px-3 font-mono text-xs font-bold">{idx + 1}</td>
                 <td className="py-2 px-3 font-medium">
-                  <span className="flex items-center gap-1.5">
-                    <span className="text-base">{team?.flagEmoji}</span>
+                  <span className="flex items-center gap-2">
+                    {team && (
+                      <FlagImage
+                        isoCode={team.isoCode}
+                        name={team.name}
+                        size="sm"
+                        fallbackEmoji={team.flagEmoji}
+                      />
+                    )}
                     <span className="hidden sm:inline">{team?.name}</span>
                     <span className="sm:hidden">{team?.shortName}</span>
                   </span>
