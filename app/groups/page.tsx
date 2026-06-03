@@ -1,7 +1,5 @@
 "use client";
-import { useState } from "react";
 import Link from "next/link";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -13,7 +11,6 @@ import SimulationControls from "@/components/SimulationControls";
 import type { GroupId } from "@/lib/types";
 
 export default function GroupsPage() {
-  const [active, setActive] = useState<GroupId>("A");
   const manualGroupOrders = useTournamentStore((s) => s.manualGroupOrders);
   const phase = useTournamentStore((s) => s.phase);
   const groupsSet = GROUP_IDS.filter((g) => manualGroupOrders[g] !== null).length;
@@ -60,24 +57,32 @@ export default function GroupsPage() {
         </div>
       )}
 
-      <Tabs value={active} onValueChange={(v) => setActive(v as GroupId)}>
-        <TabsList className="flex-wrap h-auto gap-1 p-1">
-          {GROUP_IDS.map((g) => (
-            <TabsTrigger key={g} value={g} className="text-xs px-2.5 py-1.5 relative">
-              {g}
-              {manualGroupOrders[g] && (
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full" />
-              )}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-
+      {/* All groups grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {GROUP_IDS.map((g) => (
-          <TabsContent key={g} value={g} className="mt-4">
-            <GroupSection groupId={g} />
-          </TabsContent>
+          <div
+            key={g}
+            id={`group-${g}`}
+            className="border rounded-xl p-4 space-y-3 bg-card"
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-bold tracking-tight">Group {g}</h2>
+              {manualGroupOrders[g] ? (
+                <span className="text-[11px] font-semibold text-green-600 dark:text-green-400 flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
+                  Done
+                </span>
+              ) : (
+                <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-muted-foreground/40 inline-block" />
+                  Pending
+                </span>
+              )}
+            </div>
+            <GroupSection groupId={g as GroupId} />
+          </div>
         ))}
-      </Tabs>
+      </div>
     </div>
   );
 }

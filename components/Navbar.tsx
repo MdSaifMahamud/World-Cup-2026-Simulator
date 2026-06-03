@@ -6,9 +6,8 @@ import ThemeToggle from "./ThemeToggle";
 const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/groups", label: "Groups" },
-  { href: "/fixtures", label: "Fixtures" },
-  { href: "/third-place", label: "Best 3rd" },
-  { href: "/bracket", label: "Bracket" },
+  { href: "/third-place", label: "Best Third" },
+  { href: "/bracket", label: "Knock-Out Round" },
   { href: "/settings", label: "Settings" },
 ];
 

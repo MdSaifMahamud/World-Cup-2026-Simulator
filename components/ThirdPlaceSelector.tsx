@@ -71,6 +71,25 @@ export default function ThirdPlaceSelector() {
         </Badge>
       </div>
 
+      {/* Confirm button — top, prominent */}
+      {!thirdPlaceConfirmed ? (
+        <div className="border border-dashed border-border rounded-xl p-3 flex items-center justify-between gap-3 flex-wrap bg-muted/30">
+          <p className="text-sm text-muted-foreground">
+            {count === 8
+              ? "Ready! Confirm your 8 teams to generate the Round of 32."
+              : `Select ${remaining} more team${remaining !== 1 ? "s" : ""} to continue.`}
+          </p>
+          <Button size="sm" className="shrink-0" disabled={count !== 8} onClick={handleConfirm}>
+            {count === 8 ? "✅ Confirm & Generate Round of 32 →" : `${remaining} more needed`}
+          </Button>
+        </div>
+      ) : (
+        <div className="border border-green-500/40 bg-green-50 dark:bg-green-950/20 rounded-xl p-4 text-sm text-green-700 dark:text-green-400 font-medium">
+          ✅ 8 teams confirmed — Round of 32 bracket generated.
+          Head to the <strong>Knock-Out Round</strong> page to play the knockout stage.
+        </div>
+      )}
+
       {/* Team list */}
       <div className="space-y-2">
         {bestThird.map((row, idx) => {
@@ -145,20 +164,6 @@ export default function ThirdPlaceSelector() {
         })}
       </div>
 
-      {!thirdPlaceConfirmed ? (
-        <div className="pt-2 space-y-2">
-          <Button size="lg" className="w-full sm:w-auto" disabled={count !== 8} onClick={handleConfirm}>
-            {count === 8
-              ? "✅ Confirm Selection & Generate Round of 32 →"
-              : `Select ${remaining} more team${remaining !== 1 ? "s" : ""} to continue`}
-          </Button>
-        </div>
-      ) : (
-        <div className="border border-green-500/40 bg-green-50 dark:bg-green-950/20 rounded-xl p-4 text-sm text-green-700 dark:text-green-400 font-medium">
-          ✅ 8 teams confirmed — Round of 32 bracket generated.
-          Head to the <strong>Bracket</strong> page to play the knockout stage.
-        </div>
-      )}
     </div>
   );
 }
